@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+   <head>
+      <script src="/socket.io/socket.io.js"></script>
+      <script src="https://d3js.org/d3.v7.min.js"></script>
+      <script>
+         var socket = io();
+         var Myname ="";
+
+         function test() { //                                                 TEST COMMUNICATION SERVEUR
+            console.log("Appel du serveur");
+            socket.emit('test', "Ô serveur je t'envoie ce message");
+         }
+
+         socket.on('test', data => {  //                                      RECUPERATION DU TEST DE COMMUNICATION SERVEUR
+            console.log('Réponse du serveur :');
+            console.dir(data);
+         });
+
+         function player_in(){
+            var TextInput = document.getElementById("text_input")
+            var Playerinfo = document.getElementById("Player_name")
+            TextInput.value="";
+            document.getElementById("start").setAttribute("disabled","")
+            document.getElementById("exit").removeAttribute("disabled","")
+            TextInput.setAttribute("readonly","")
+            Playerinfo.innerText=Myname;
+         }
+
+         function player_out(){
+            var TextInput = document.getElementById("text_input")
+            var Playerinfo = document.getElementById("Player_name")
+            document.getElementById("information").innerText=""
+            document.getElementById("start").removeAttribute("disabled")
+            document.getElementById("exit").setAttribute("disabled","")
+            TextInput.removeAttribute("readonly")
+            TextInput.setAttribute("placeholder","Your fucking Name")
+            Playerinfo.innerText="none";
+         }
+
+         function modif_text_box(){  //                                       FONCTION D'ENTREE DANS LE SERVEUR
+            var TextInput = document.getElementById("text_input")
+            var Info = document.getElementById("information")
+            if (TextInput.value==""){
+               Info.innerText="Veuillez saisir une entrée ! Aucune entrée saisie !"
+               TextInput.setAttribute("placeholder","Veuillez entrée un nom")
+            }else{
+               Myname=TextInput.value
+               Info.innerText=""
+               console.log("Envoie d'une demande de changment de test")
+               socket.emit('enter',(Myname))
+               player_in();
+               console.log(Myname)
+               
+            }
+         }
+
+         function exit(){  //                                                    FONCTION DE SORTIE DE LA PARTIE
+            console.log(Myname);
+            if (Myname!=""){
+               socket.emit('exit',Myname);
+               Myname=""
+               player_out();
+            }else{
+               document.getElementById("information").innerText="Personne à faire sortir !"
+            }
+         }
+
+         socket.on('enter',data => {  //                                         RECUPERATION DE LA LISTE DES JOUEURS
+            console.log('J\'ai reçu ma zone de texte !')
+            const MyText = document.getElementById("text-box_test")
+            MyText.innerText=data
+         })
+
+         socket.on('information',data => {   //                                  RECUPERATION D'INFORMATION SERVEUR
+            var Info = document.getElementById("information")
+            if (data=="free"){
+               if (Myname==""){
+                  innerText="Une personne vient de sortir."
+                  player_out();
+               }
+            }
+            else if (data=="full"){
+               innerText="Partie pleine !"
+               document.getElementById("exit").setAttribute("disabled","")
+               document.getElementById("start").setAttribute("disabled","")
+               document.getElementById("text_input").setAttribute("readonly","")
+            }
+         })
+         
+         function envoiMessage(text_content){ //                                  ENVOIE DE MESSAGE
+            if (Myname==""){
+               console.log("Pas de nom de joueurs")
+            }else{
+               socket.emit('message',[text_content.value,Myname]);
+               //messages.value += text_content.value+"\n";
+               console.log("Je m'appelle :"+Myname)
+               text_content.value=""
+            }
+         }
+         socket.on('message',data => { //                                        ACTUALISATION DU CHAT
+            tmp = data + messages.value;
+            messages.value = tmp
+         })
+         socket.on('NewName',data => { //                                        MODIFICATION DU NOM CAR DEJA EXISTANT
+                  Myname=data;
+                  document.getElementById("text_input").setAttribute("placeholder","Your name is : "+Myname);
+         })
+         
+// =======================================================================================================================================================
+// TABLIER
+// =======================================================================================================================================================
+
+         function creeHexagone(rayon) {
+            var points = new Array();
+            for (var i = 0; i < 6; ++i) {
+            var angle = i * Math.PI / 3;
+            var x = Math.sin(angle) * rayon;
+            var y = -Math.cos(angle) * rayon;
+	         console.log("x="+Math.round(x*100)/100+" y="+Math.round(y*100)/100);
+            points.push([Math.round(x*100)/100, Math.round(y*100)/100]);
+            }
+            return points;
+         }
+
+         function genereDamier(rayon, nbLignes, nbColonnes) {
+
+            distance =  rayon - (Math.sin(1 * Math.PI / 3) * rayon);  // plus grande distance entre l'hexagone et le cercle circonscrit
+
+            d3.select("#tablier").append("svg").attr("width", "1000").attr("height", "1000");
+            var hexagone = creeHexagone(rayon);
+            for (var ligne=0; ligne < nbLignes; ligne++) {
+               for (var colonne=0; colonne < nbColonnes; colonne++) {
+                  var d = "M";
+                  var x, y;
+                  for (h in hexagone) {
+                     x = hexagone[h][0]+(rayon-distance)*(2+2*colonne)+((nbLignes-ligne)*(rayon-distance));
+                     y = distance*2 + hexagone[h][1]+(rayon-distance*2)*(1+2*ligne);
+                     d += x+","+y+" "
+                  }
+                  d += "Z";
+                  console.log(d)
+                  d3.select("svg")
+                  .append("path")
+                  .attr("d",d)
+                  .attr("stroke","black")
+                  .attr("fill","white")
+                  .attr("id", "h"+(ligne*11+colonne)) // car un id doit commencer par une lettre
+                  .on("click", function(d) {
+                     let numHexagone = parseInt(d3.select(this)
+                     .attr('id')
+                     .substring(1))
+                     mafonction(d3.select(this))
+                     console.log("Hexagone cliqué : "+ numHexagone)
+                     console.log(d3.select(this).attr('id'));
+                     //d3.select(this).attr('fill', 'red');
+                  });
+               }
+            }
+         }
+
+         function mafonction(h){
+            h.attr('fill','black');
+         }
+
+// =======================================================================================================================================================
+
+         window.addEventListener('load', () => { test(); genereDamier(30,11,11) } );
+      </script>
+      <title>Jeu de HEX</title>
+   </head>
+   <body style="background-color: gray;;"> 
+      <h1 style="text-align: center;">Bienvenue dans le jeu de HEX</h1>
+      <div name="entry" id="entry">
+         <input type="text" id="text_input" name="text_input" maxlength="20" placeholder="Your Fucking name !" required min="1" onChange="modif_text_box()" autofocus>
+         <button type="button" name="start" id="start" style="background-color: black;color: white; display: inline-block;">
+            Enter
+         </button>
+         <button type="button" name="exit" id="exit" style="background-color: black;color: white; display: inline-block;" disabled>
+            Exit
+         </button>
+         <p style="color: red;display: inline-block;" name="information" id="information"></p>
+      </div>
+      <div name="log" id="log">
+         <p style="display: inline-block;">Joueurs : </p> <p name="text-box_test" id="text-box_test" readonly style="display: inline-block;"></p>
+      </div>
+      <div>
+         <div id="tablier" style="float:left;" />
+         <div style="float:right;">
+         <input id="message" type="text" onChange="envoiMessage(this)" placeholder="Votre message" value=""/><br/>
+         <textarea id="messages" rows="30" cols="25" readonly></textarea>
+         </div>
+      </div>
+      <div name="menu" id="menu" style="height: auto; border: 2px solid black; padding: 30px;margin: 30px; background-color:lightgray;display: inline-block; text-align:left;align-items: center;">
+         Votre nom : <p id="Player_name" style="display: inline-block;"> none</p>
+         <br>
+         Spectateur <input type="checkbox" id="spectator"></input>
+         <br>
+         Votre couleur <input type="color" id="playercolor"></input>
+      </div>
+   </body>
+   <script>
+   document.getElementById("start").addEventListener("click",() => { modif_text_box(); })
+   document.getElementById("exit").addEventListener("click",() => { exit(); })
+   </script>
+</html>
