@@ -209,6 +209,7 @@
          socket.on('enter',data => {  //                                         RECUPERATION DE LA LISTE DES JOUEURS
             console.log('J\'ai reçu ma zone de texte !')
             const MyText = document.getElementById("Players")
+            const MyText = document.getElementById("Players")
             MyText.innerText=data
             MyName=data
          })
@@ -252,6 +253,13 @@
          })
          
          socket.on('numplayer',data => {  //                                         RECUPERATION DU NUMERO DU JOUEUR
+            MyNum=data;
+            if (MyNum >= 0){
+               MyStat = "Player "+(MyNum++);
+            } else{
+               MyStat = "Spectator";
+            }
+            document.getElementById("status").innerText = MyStat;    //actualisation du status
             MyNum=data;
             if (MyNum >= 0){
                MyStat = "Player "+(MyNum++);
@@ -350,6 +358,7 @@
                   .append("path")
                   .attr("d",d)
                   .attr("stroke","black")
+                  .attr("")
                   .attr("fill","white")
                   .attr("id", "h"+(ligne*11+colonne)) // car un id doit commencer par une lettre
                   .on("click", function(d) {
@@ -431,6 +440,21 @@
             <label for="Players">Joueurs :</label>
             <p name="Players" id="Players" readonly></p>
          </div>
+   <body> 
+      <div id="top">
+         <div id="welcome">
+         <h1 id="welcome_text">Bienvenue dans le jeu de HEX</h1>
+         </div>
+         <div name="entry" id="entry">
+            <input type="text" id="text_input" name="text_input" maxlength="20" placeholder="Your Fucking name !" required min="1" onChange="modif_text_box()" autofocus>
+            <button type="button" name="start" id="start">Enter</button>
+            <button type="button" name="exit" id="exit"  disabled>Exit</button>
+            <p name="information" id="information"></p>
+         </div>
+         <div name="log" id="log">
+            <label for="Players">Joueurs :</label>
+            <p name="Players" id="Players" readonly></p>
+         </div>
       </div>
       <div id="main">
          <div id="tablier" name="tablier"></div>
@@ -438,6 +462,27 @@
          <div id="msgdiv">
             <input id="message" type="text" onChange="envoiMessage(this)" placeholder="Votre message" value=""/><br/>
             <textarea id="messages" rows="30" cols="25" readonly></textarea>
+         </div>
+         <div name="menu" id="menu">
+            <div id="menu_nom">
+               <label for="Player_name">Votre nom : </label>
+               <p id="Player_name">none</p>
+            </div>
+            <br>
+            <div id="menu_status">
+               <label for="status">Status : </label>
+               <p id="status">unknown</p>
+            </div>
+            <br>
+            <div id="menu_color1">
+            <label for="P1color">Couleur Player 1 :</label>
+            <input type="color" id="P1color"></input>
+            </div>
+            <br>
+            <div id="menu_color2">
+            <label for="P2color">Couleur Player 2 :</label>
+            <input type="color" id="P2color"></input>
+            </div>
          </div>
          <div name="menu" id="menu">
             <div id="menu_nom">
