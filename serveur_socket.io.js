@@ -109,7 +109,7 @@ io.on('connection', (socket) => {
             console.log(i)
             console.log(Historique.length)
         }
-        if (!dejafait&&PartieEnCours&&numJ==Token){                  /*réalise l'action*/
+        if (!dejafait && PartieEnCours && numJ == Token){                  /*réalise l'action*/
             Historique.push([numJ, numC]);
             if (Token==0){
                 Token=1;
@@ -118,6 +118,7 @@ io.on('connection', (socket) => {
             }
             console.log(Historique)
             io.emit('action', [numJ, numC]);
+            victoire(numJ,numC);
         }
     })
 
@@ -125,9 +126,44 @@ io.on('connection', (socket) => {
         socket.emit('demandeH',Historique);
     })
 
+    function into(l,e1,e2){
+        res=0;
+        for (e of l){
+            if (e[0]==e1 && e[1]==e2){
+                res=1;
+            }
+        }
+        return res;
+    }
+
     function victoire(P,C){
-        var disco=[];
+        var disco=[C];
         var group=[];
-        
+        console.log(Historique)
+        var cp=0;
+        var PP;
+        while(disco.length>0){
+            cp=disco[0];
+            disco.shift();
+            group.push(cp);
+            console.log("Discovery : "+disco);
+            console.log("Groupe : "+group);
+
+            PP=[]
+            PP=[(cp-1),(cp+1),(cp-size),(cp-size-1),(cp-size+1),(cp+size),(cp+size+1),(cp+size-1)];
+            console.log(PP)
+            for (e of PP){
+                console.log(e)
+                if (e>=0 && e<(size*size)){
+                    console.log("Yeah : "+ e)
+                    var save=e;
+                    if ((!group.includes(e)) && (!disco.includes(e)) && (into(Historique,P,e))){
+                        disco.push(save);
+                    }
+                }
+            }
+        }
+        console.log("Fonction victoire terminé !");
+        console.log(group);
     }
 });
