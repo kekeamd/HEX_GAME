@@ -10,6 +10,7 @@ var Historique = [];    /*initialisation historique*/
 var PartieEnCours = false; /* Pour savoir si il y a une partie qui à commencé ou non */
 var CompteARebours = null;
 var Token;
+var size=-1;
 
 server.listen(8888, () => {console.log('Le serveur écoute sur le port 8888');});
 
@@ -18,9 +19,18 @@ app.get('/', (request, response) => {
 });
 
 io.on('connection', (socket) => {
-    socket.on('test', data => {
-        console.log("Message reçu du client :", data);
-        socket.emit('test', {'quiterepond': 'le serveur !'})
+    socket.on('MyConnect', data => {                       // Première connexion !
+        var ok=0;
+        if (size==-1){
+            size=data;
+            console.log("Première personne connecté, taille du tablier :" + size)
+        }else if (size==data){ // Taille de tablier correspondante
+            console.log("Joueur connecté avec comme taille du tablier : " + size)
+        }else{
+            ok=1; // Il y a un problème...
+            console.log("Essaie de connection avec une taille de tablier erroné ("+size+")")
+        }
+        socket.emit('MyConnect', ok);
         io.emit('enter',Joueurs);
     });
 
@@ -115,4 +125,9 @@ io.on('connection', (socket) => {
         socket.emit('demandeH',Historique);
     })
 
+    function victoire(P,C){
+        var disco=[];
+        var group=[];
+        
+    }
 });

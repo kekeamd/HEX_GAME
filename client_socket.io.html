@@ -55,6 +55,7 @@
              width:56%;
              margin-right: 4%;
              overflow: auto;
+             display: inline-block;
          }
      
          #msgdiv{
@@ -120,6 +121,8 @@
          var P1 = [255,0,0] //r,g,b
          var P2 = [0,0,255] //r,g,b
          var MyStat = "Unknown"
+         var size = 11      //taille de la surface de jeu
+         var Historique=[];
 
          function componentToHex(c) {
             var hex = c.toString(16);
@@ -139,15 +142,18 @@
             } : null;
          }
 
-         function test() { //                                                 TEST COMMUNICATION SERVEUR
+         function test() { //                                                      TEST COMMUNICATION SERVEUR
             console.log("Appel du serveur");
-            socket.emit('test', "Ô serveur je t'envoie ce message");
+            socket.emit("MyConnect", size);
          }
 
-         socket.on('test', data => {  //                                      RECUPERATION DU TEST DE COMMUNICATION SERVEUR
-            console.log('Réponse du serveur :');
-            console.dir(data);
-            socket.emit('demandeH')
+         socket.on('MyConnect', data => {  //                                      RECUPERATION DU TEST DE COMMUNICATION SERVEUR
+            if (data=0){
+               console.log('Tout es ok !')
+               socket.emit('demandeH')
+            }else{
+               // CoMmEnT tU aS rEuSsI à aRrIvEr IcI ?
+            }
          });
 
          function player_in(){
@@ -203,6 +209,7 @@
          socket.on('enter',data => {  //                                         RECUPERATION DE LA LISTE DES JOUEURS
             console.log('J\'ai reçu ma zone de texte !')
             const MyText = document.getElementById("Players")
+            const MyText = document.getElementById("Players")
             MyText.innerText=data
             MyName=data
          })
@@ -253,6 +260,13 @@
                MyStat = "Spectator";
             }
             document.getElementById("status").innerText = MyStat;    //actualisation du status
+            MyNum=data;
+            if (MyNum >= 0){
+               MyStat = "Player "+(MyNum++);
+            } else{
+               MyStat = "Spectator";
+            }
+            document.getElementById("status").innerText = MyStat;    //actualisation du status
          })
 
          function envoiMessage(text_content){ //                                  ENVOIE DE MESSAGE
@@ -275,8 +289,9 @@
          })
          
          socket.on('action', data => {
-            NumPlay=data[0]
-            NumHex=data[1]
+            NumPlay=data[0];
+            NumHex=data[1];
+            Historique.push(NumPlay,NumHex);
             MyHexa=d3.select(document.getElementById("h"+NumHex))
             console.log("Hexagone reçu : " + "h"+NumHex)
             if (NumPlay==0){   
@@ -288,6 +303,7 @@
 
          socket.on('demandeH',data => {
             T=data.length
+            Historique=Historique
             i=0
             console.log("Historique reçu")
             while(i<T){
@@ -371,7 +387,7 @@
 
 // =======================================================================================================================================================
 
-         window.addEventListener('load', () => { test(); genereDamier(30,11,11) } );
+         window.addEventListener('load', () => { test(); genereDamier(30,size,size) } );
          window.addEventListener("load", color, false);
 
          function color() {
@@ -423,12 +439,49 @@
             <label for="Players">Joueurs :</label>
             <p name="Players" id="Players" readonly></p>
          </div>
+   <body> 
+      <div id="top">
+         <div id="welcome">
+         <h1 id="welcome_text">Bienvenue dans le jeu de HEX</h1>
+         </div>
+         <div name="entry" id="entry">
+            <input type="text" id="text_input" name="text_input" maxlength="20" placeholder="Your Fucking name !" required min="1" onChange="modif_text_box()" autofocus>
+            <button type="button" name="start" id="start">Enter</button>
+            <button type="button" name="exit" id="exit"  disabled>Exit</button>
+            <p name="information" id="information"></p>
+         </div>
+         <div name="log" id="log">
+            <label for="Players">Joueurs :</label>
+            <p name="Players" id="Players" readonly></p>
+         </div>
       </div>
       <div id="main">
-         <div id="tablier"></div>
+         <div id="tablier" name="tablier"></div>
+         
          <div id="msgdiv">
             <input id="message" type="text" onChange="envoiMessage(this)" placeholder="Votre message" value=""/><br/>
             <textarea id="messages" rows="30" cols="25" readonly></textarea>
+         </div>
+         <div name="menu" id="menu">
+            <div id="menu_nom">
+               <label for="Player_name">Votre nom : </label>
+               <p id="Player_name">none</p>
+            </div>
+            <br>
+            <div id="menu_status">
+               <label for="status">Status : </label>
+               <p id="status">unknown</p>
+            </div>
+            <br>
+            <div id="menu_color1">
+            <label for="P1color">Couleur Player 1 :</label>
+            <input type="color" id="P1color"></input>
+            </div>
+            <br>
+            <div id="menu_color2">
+            <label for="P2color">Couleur Player 2 :</label>
+            <input type="color" id="P2color"></input>
+            </div>
          </div>
          <div name="menu" id="menu">
             <div id="menu_nom">
