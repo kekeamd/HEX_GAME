@@ -6,6 +6,27 @@
       <script>
          var socket = io();
          var Myname ="";
+         var MyNum = -1;
+         var P1 = [255,0,0] //r,g,b
+         var P2 = [0,0,255] //r,g,b
+
+         function componentToHex(c) {
+            var hex = c.toString(16);
+            return hex.length == 1 ? "0" + hex : hex;
+         }
+
+         function rgbToHex(r, g, b) {
+            return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+         }
+
+         function hexToRgb(hex) {
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+               r: parseInt(result[1], 16),
+               g: parseInt(result[2], 16),
+               b: parseInt(result[3], 16)
+            } : null;
+         }
 
          function test() { //                                                 TEST COMMUNICATION SERVEUR
             console.log("Appel du serveur");
@@ -15,6 +36,7 @@
          socket.on('test', data => {  //                                      RECUPERATION DU TEST DE COMMUNICATION SERVEUR
             console.log('Réponse du serveur :');
             console.dir(data);
+            socket.emit('demandeH')
          });
 
          function player_in(){
@@ -25,6 +47,7 @@
             document.getElementById("exit").removeAttribute("disabled","")
             TextInput.setAttribute("readonly","")
             Playerinfo.innerText=Myname;
+            socket.emit('numplayer',Myname)
          }
 
          function player_out(){
@@ -36,6 +59,7 @@
             TextInput.removeAttribute("readonly")
             TextInput.setAttribute("placeholder","Your fucking Name")
             Playerinfo.innerText="none";
+            socket.emit('numplayer',Myname)
          }
 
          function modif_text_box(){  //                                       FONCTION D'ENTREE DANS LE SERVEUR
@@ -45,12 +69,11 @@
                Info.innerText="Veuillez saisir une entrée ! Aucune entrée saisie !"
                TextInput.setAttribute("placeholder","Veuillez entrée un nom")
             }else{
-               Myname=TextInput.value
                Info.innerText=""
                console.log("Envoie d'une demande de changment de test")
-               socket.emit('enter',(Myname))
+               socket.emit('enter',(TextInput.value))
                player_in();
-               console.log(Myname)
+               console.log(TextInput.value)
                
             }
          }
@@ -70,24 +93,51 @@
             console.log('J\'ai reçu ma zone de texte !')
             const MyText = document.getElementById("text-box_test")
             MyText.innerText=data
+            MyName=data
          })
 
+         var affichetimer=null;
+
+         function afficheInfo(info){
+            if (affichetimer){
+               clearTimeout(affichetimer);
+            }
+            var Info = document.getElementById("information");
+            Info.innerText = info;
+            affichetimer = setTimeout(function(){
+               Info.innerText = "";
+            }, 5000)
+         }
+
          socket.on('information',data => {   //                                  RECUPERATION D'INFORMATION SERVEUR
-            var Info = document.getElementById("information")
             if (data=="free"){
                if (Myname==""){
-                  innerText="Une personne vient de sortir."
+                  afficheInfo("Une personne vient de sortir.");
                   player_out();
                }
             }
             else if (data=="full"){
-               innerText="Partie pleine !"
+               afficheInfo("Partie pleine !");
                document.getElementById("exit").setAttribute("disabled","")
                document.getElementById("start").setAttribute("disabled","")
                document.getElementById("text_input").setAttribute("readonly","")
             }
+            else if (data=="starting"){
+               afficheInfo("La partie commence dans 5 Sec...");
+            }
+            else if (data=="started"){
+               afficheInfo("La partie commence!");
+
+            }
+            else if (data=="cancel"){
+               afficheInfo("Annulation car un joueur a quitté la partie!");
+            }
          })
          
+         socket.on('numplayer',data => {  //                                         RECUPERATION DU NUMERO DU JOUEUR
+            MyNum=data
+         })
+
          function envoiMessage(text_content){ //                                  ENVOIE DE MESSAGE
             if (Myname==""){
                console.log("Pas de nom de joueurs")
@@ -107,6 +157,37 @@
                   document.getElementById("text_input").setAttribute("placeholder","Your name is : "+Myname);
          })
          
+         socket.on('action', data => {
+            NumPlay=data[0]
+            NumHex=data[1]
+            MyHexa=d3.select(document.getElementById("h"+NumHex))
+            console.log("Hexagone reçu : " + "h"+NumHex)
+            if (NumPlay==0){   
+               MyHexa.attr('fill',"rgb("+P1[0]+","+P1[1]+","+P1[2]+")");
+            }else if (NumPlay==1){
+               MyHexa.attr('fill',"rgb("+P2[0]+","+P2[1]+","+P2[2]+")");
+            }
+         })
+
+         socket.on('demandeH',data => {
+            T=data.length
+            i=0
+            console.log("Historique reçu")
+            while(i<T){
+               NumPlay=data[i][0]
+               NumHex=data[i][1]
+               MyHexa=d3.select(document.getElementById("h"+NumHex))
+               if (NumPlay==0){
+                  MyHexa.attr('fill',"rgb("+P1[0]+","+P1[1]+","+P1[2]+")");
+               }else if (NumPlay==1){
+                  MyHexa.attr('fill',"rgb("+P2[0]+","+P2[1]+","+P2[2]+")");
+               }
+               i++
+            }
+         })
+
+
+
 // =======================================================================================================================================================
 // TABLIER
 // =======================================================================================================================================================
@@ -160,12 +241,53 @@
          }
 
          function mafonction(h){
-            h.attr('fill','black');
+            var Info = document.getElementById("information")
+            var numHexagone = parseInt(h.attr('id').substring(1))
+            console.log(numHexagone)
+            if (Myname==""){
+               Info.innerText="Tu n'es pas joueur !"
+            }else{
+               Info.innerText=""
+               socket.emit('action',[Myname,numHexagone])
+            }
          }
 
 // =======================================================================================================================================================
 
          window.addEventListener('load', () => { test(); genereDamier(30,11,11) } );
+         window.addEventListener("load", color, false);
+
+         function color() {
+            var Player1 = document.getElementById("P1color");
+            var Player2 = document.getElementById("P2color");
+            var P1def = rgbToHex(P1[0],P1[1],P1[2]);
+            var P2def = rgbToHex(P2[0],P2[1],P2[2]);
+            Player1.value = P1def
+            Player2.value = P2def
+            Player1.addEventListener("change", updateAll, false);
+            Player2.addEventListener("change", updateAll, false);
+
+         }
+
+         function updateAll(event) {
+            elem=document.getElementById(event.target.id)
+            newrgb=hexToRgb(elem.value)
+            console.log(newrgb)
+            if (event.target.id=="P1color"){
+               P1[0]=newrgb.r
+               P1[1]=newrgb.g
+               P1[2]=newrgb.b
+            }else if (event.target.id=="P2color"){
+               P2[0]=newrgb.r
+               P2[1]=newrgb.g
+               P2[2]=newrgb.b
+            }
+            console.log(P1)
+            console.log(P2)
+            socket.emit('demandeH',"")
+         }
+
+
       </script>
       <title>Jeu de HEX</title>
    </head>
@@ -188,7 +310,7 @@
          <div id="tablier" style="float:left;" />
          <div style="float:right;">
          <input id="message" type="text" onChange="envoiMessage(this)" placeholder="Votre message" value=""/><br/>
-         <textarea id="messages" rows="30" cols="25" readonly></textarea>
+         <textarea id="messages" rows="30" cols="25" style="resize: none;" readonly></textarea>
          </div>
       </div>
       <div name="menu" id="menu" style="height: auto; border: 2px solid black; padding: 30px;margin: 30px; background-color:lightgray;display: inline-block; text-align:left;align-items: center;">
@@ -196,7 +318,11 @@
          <br>
          Spectateur <input type="checkbox" id="spectator"></input>
          <br>
-         Votre couleur <input type="color" id="playercolor"></input>
+         <label for="P1color">Couleur Player 1 :</label>
+         <input type="color" id="P1color"></input>
+         <br>
+         <label for="P2color">Couleur Player 2 :</label>
+         <input type="color" id="P2color"></input>
       </div>
    </body>
    <script>

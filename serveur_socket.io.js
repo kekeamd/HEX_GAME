@@ -6,6 +6,10 @@ const server = http.createServer(app);
 const io = new require("socket.io")(server);
 var nbJoueursMax=2;
 var Joueurs=[];
+var Historique = [];    /*initialisation historique*/
+var PartieEnCours = false; /* Pour savoir si il y a une partie qui à commencé ou non */
+var CompteARebours = null;
+var Token;
 
 server.listen(8888, () => {console.log('Le serveur écoute sur le port 8888');});
 
@@ -19,6 +23,7 @@ io.on('connection', (socket) => {
         socket.emit('test', {'quiterepond': 'le serveur !'})
         io.emit('enter',Joueurs);
     });
+
     socket.on('enter', data => {
         if (Joueurs.length<nbJoueursMax){
             if(Joueurs.length!=0 && Joueurs.includes(data)){
@@ -28,15 +33,25 @@ io.on('connection', (socket) => {
             console.log("J'ai bien reçu le nom de joueur et l'ai ajouté à la liste des joueurs");
             console.log("Nombre de joueurs : " + Joueurs.length);
             io.emit('enter',Joueurs);
-            socket.emit('information',"");
             socket.emit('NewName',data);
+            if (Joueurs.length==nbJoueursMax){          /*check si la partie peut commencé*/
+                io.emit('information', "starting");     /*prévient que la partie va commencé */
+                CompteARebours = setTimeout(function(){
+                    io.emit('information', "started");  /*compte à rebours puis prévient que la partie a commencé*/
+                    PartieEnCours = true; 
+                    Token=0;
+                } ,5000);
+                console.log(CompteARebours)
+            }
         }else{
             console.log("J'ai bien reçu le nom de joueur, mais la partie est pleine !");
-            socket.emit('information',"Partie pleine !");
+            socket.emit('information',"full");
+            socket.emit('enter',"")
             io.emit('enter',Joueurs);
         }
     })
-    socket.on('exit',data => {
+
+    socket.on('exit',data => {
         if (Joueurs.indexOf(data)==0){
             Joueurs.shift()
         }else{
@@ -44,8 +59,60 @@ io.on('connection', (socket) => {
         }
         io.emit('enter',Joueurs);
         io.emit('information',"free")
+        if (CompteARebours){                        // Maybe false
+            clearTimeout(CompteARebours);
+            console.log(CompteARebours)
+            io.emit('information', "cancel");
+        }
     })
+
     socket.on('message',data => {
         io.emit('message',(data[1]+" : "+data[0]+"\n"))
     })
+
+    socket.on('numplayer',data => {
+        if (Joueurs.includes(data)==1){
+            if (Joueurs.indexOf(data)==0){
+                socket.emit('numplayer',0);
+            }else{
+                socket.emit('numplayer',1);
+            }
+        }else{
+            socket.emit('numplayer',-1);
+        }
+    })
+
+
+
+    // ============================================= CODE BY ILAN
+
+    socket.on('action', data => {                       /*traitement des actions*/
+        var numJ = Joueurs.indexOf(data[0]);            /*récup des datas*/
+        var numC = data[1];
+        var dejafait = false;
+        var i = 0;
+        while(i<Historique.length&&(!dejafait)){        /*cherche si l'action à déjà été fait*/
+            if (Historique[i][1]==numC){
+                dejafait=true;
+            }
+            i++;
+            console.log(i)
+            console.log(Historique.length)
+        }
+        if (!dejafait&&PartieEnCours&&numJ==Token){                  /*réalise l'action*/
+            Historique.push([numJ, numC]);
+            if (Token==0){
+                Token=1;
+            } else if(Token==1){
+                Token=0;
+            }
+            console.log(Historique)
+            io.emit('action', [numJ, numC]);
+        }
+    })
+
+    socket.on('demandeH', data =>{                      /*demande l'historique actuel*/
+        socket.emit('demandeH',Historique);
+    })
+
 });
