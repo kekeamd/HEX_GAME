@@ -56,8 +56,6 @@ io.on('connection', (socket) => {
         }else{
             console.log("J'ai bien reçu le nom de joueur, mais la partie est pleine !");
             socket.emit('information',"full");
-            socket.emit('enter',"")
-            io.emit('enter',Joueurs);
         }
     })
 

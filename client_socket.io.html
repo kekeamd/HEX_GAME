@@ -180,17 +180,17 @@
          }
 
          function modif_text_box(){  //                                       FONCTION D'ENTREE DANS LE SERVEUR
-            var TextInput = document.getElementById("text_input")
-            var Info = document.getElementById("information")
+            var TextInput = document.getElementById("text_input");
+            var Info = document.getElementById("information");
             if (TextInput.value==""){
-               Info.innerText="Veuillez saisir une entrée ! Aucune entrée saisie !"
-               TextInput.setAttribute("placeholder","Veuillez entrée un nom")
+               Info.innerText="Veuillez saisir une entrée ! Aucune entrée saisie !";
+               TextInput.setAttribute("placeholder","Veuillez entrée un nom");
             }else{
-               Info.innerText=""
-               console.log("Envoie d'une demande de changment de test")
-               socket.emit('enter',(TextInput.value))
+               Info.innerText="";
+               console.log("Envoie d'une demande de changment de text")
+               socket.emit('enter',(TextInput.value));
                player_in();
-               console.log(TextInput.value)
+               console.log(TextInput.value);
                
             }
          }
@@ -209,7 +209,7 @@
          socket.on('enter',data => {  //                                         RECUPERATION DE LA LISTE DES JOUEURS
             console.log('J\'ai reçu ma zone de texte !')
             const MyText = document.getElementById("Players")
-            MyText.innerText=data
+            MyText.innerText=data;
          })
 
          var affichetimer=null;
