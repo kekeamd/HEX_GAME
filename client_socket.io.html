@@ -113,6 +113,11 @@
              margin: 2%;
              flex-wrap: wrap;
          }
+
+         #menu_skip{
+            width: 100%;
+            column-gap: 10%;
+         }
       </style>
       <script>
          var socket = io();
@@ -199,6 +204,10 @@
             if (Myname!=""){
                socket.emit('exit',Myname);
                Myname="";
+               MyStat="Unknown";
+               document.getElementById("status").innerText = MyStat;
+               document.getElementById("skip_b").setAttribute("disabled", "");
+               document.getElementById("skip_f").setAttribute("disabled", ""); //désactive boutons spectateurs car status inconnu
                player_out();
             }else{
                document.getElementById("information").innerText="Personne à faire sortir !"
@@ -253,8 +262,12 @@
             MyNum=data;
             if (MyNum >= 0){
                MyStat = "Player "+(MyNum++);
+               document.getElementById("skip_b").setAttribute("disabled", "");
+               document.getElementById("skip_f").setAttribute("disabled", ""); //désactive boutons spectateurs car joueur
             } else{
                MyStat = "Spectator";
+               document.getElementById("skip_b").removeAttribute("disabled");
+               document.getElementById("skip_f").removeAttribute("disabled"); //active boutons spectateurs car spectateur
             }
             document.getElementById("status").innerText = MyStat;    //actualisation du status
          })
@@ -459,6 +472,11 @@
             <div id="menu_color2">
             <label for="P2color">Couleur Player 2 :</label>
             <input type="color" id="P2color"></input>
+            </div>
+            <br/>
+            <div id="menu_skip">
+                <button type="button" name="skip_b" id="skip_b" disabled><</button>
+                <button type="button" name="skip_f" id="skip_f" disabled>></button>
             </div>
          </div>
       </div>
