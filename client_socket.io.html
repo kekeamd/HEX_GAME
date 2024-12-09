@@ -158,13 +158,10 @@
 
          function player_in(){
             var TextInput = document.getElementById("text_input")
-            var Playerinfo = document.getElementById("Player_name")
             TextInput.value="";
             document.getElementById("start").setAttribute("disabled","")
             document.getElementById("exit").removeAttribute("disabled","")
             TextInput.setAttribute("readonly","")
-            Playerinfo.innerText=Myname;
-            socket.emit('numplayer',Myname)
          }
 
          function player_out(){
@@ -199,7 +196,7 @@
             console.log(Myname);
             if (Myname!=""){
                socket.emit('exit',Myname);
-               Myname=""
+               Myname="";
                player_out();
             }else{
                document.getElementById("information").innerText="Personne à faire sortir !"
@@ -275,8 +272,11 @@
             messages.value = tmp
          })
          socket.on('NewName',data => { //                                        MODIFICATION DU NOM CAR DEJA EXISTANT
+                  var Playerinfo = document.getElementById("Player_name");
                   Myname=data;
                   document.getElementById("text_input").setAttribute("placeholder","Your name is : "+Myname);
+                  Playerinfo.innerText=Myname;
+                  socket.emit('numplayer',Myname)
          })
          
          socket.on('action', data => {
