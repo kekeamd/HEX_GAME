@@ -157,11 +157,13 @@
          });
 
          function player_in(){
-            var TextInput = document.getElementById("text_input")
+            var TextInput = document.getElementById("text_input");
             TextInput.value="";
-            document.getElementById("start").setAttribute("disabled","")
-            document.getElementById("exit").removeAttribute("disabled","")
-            TextInput.setAttribute("readonly","")
+            document.getElementById("start").setAttribute("disabled","");
+            document.getElementById("exit").removeAttribute("disabled","");
+            TextInput.setAttribute("readonly","");
+            //Playerinfo.innerText=Myname;
+            //socket.emit('numplayer',Myname);
          }
 
          function player_out(){
@@ -275,8 +277,8 @@
                   var Playerinfo = document.getElementById("Player_name");
                   Myname=data;
                   document.getElementById("text_input").setAttribute("placeholder","Your name is : "+Myname);
-                  Playerinfo.innerText=Myname;
-                  socket.emit('numplayer',Myname)
+                  Playerinfo.innerText=Myname;     // problème d'affichage potentiellement fixé ici
+                  socket.emit('numplayer',Myname);
          })
          
          socket.on('action', data => {
