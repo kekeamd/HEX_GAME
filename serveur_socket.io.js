@@ -126,8 +126,8 @@ io.on('connection', (socket) => {
 
     function into(l,e1,e2){
         res=0;
-        for (e of l){
-            if (e[0]==e1 && e[1]==e2){
+        for (elem of l){
+            if (elem[0]==e1 && elem[1]==e2){
                 res=1;
             }
         }
@@ -154,9 +154,10 @@ io.on('connection', (socket) => {
                 console.log(e)
                 if (e>=0 && e<(size*size)){
                     console.log("Yeah : "+ e)
-                    var save=e;
+                    //var save=e;
                     if ((!group.includes(e)) && (!disco.includes(e)) && (into(Historique,P,e))){
-                        disco.push(save);
+                        //disco.push(save);
+                        disco.push(e);
                     }
                 }
             }
