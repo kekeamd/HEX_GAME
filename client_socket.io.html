@@ -116,7 +116,7 @@
 
          #menu_skip{
             width: 100%;
-            column-gap: 10%;
+            column-gap: 5%;
          }
       </style>
       <script>
@@ -128,6 +128,7 @@
          var MyStat = "Unknown"
          var size = 11      //taille de la surface de jeu
          var Historique=[];
+         var HistoriqueSpec=[]; // historique du spectateur
 
          function componentToHex(c) {
             var hex = c.toString(16);
@@ -207,7 +208,8 @@
                MyStat="Unknown";
                document.getElementById("status").innerText = MyStat;
                document.getElementById("skip_b").setAttribute("disabled", "");
-               document.getElementById("skip_f").setAttribute("disabled", ""); //désactive boutons spectateurs car status inconnu
+               document.getElementById("skip_f").setAttribute("disabled", ""); 
+               document.getElementById("spec_refresh").setAttribute("disabled", "");   //désactive boutons spectateurs car status inconnu
                player_out();
             }else{
                document.getElementById("information").innerText="Personne à faire sortir !"
@@ -263,11 +265,13 @@
             if (MyNum >= 0){
                MyStat = "Player "+(MyNum++);
                document.getElementById("skip_b").setAttribute("disabled", "");
-               document.getElementById("skip_f").setAttribute("disabled", ""); //désactive boutons spectateurs car joueur
+               document.getElementById("skip_f").setAttribute("disabled", "");
+               document.getElementById("spec_refresh").setAttribute("disabled", "");   //désactive boutons spectateurs car joueur
             } else{
                MyStat = "Spectator";
                document.getElementById("skip_b").removeAttribute("disabled");
-               document.getElementById("skip_f").removeAttribute("disabled"); //active boutons spectateurs car spectateur
+               document.getElementById("skip_f").removeAttribute("disabled");
+               document.getElementById("spec_refresh").removeAttribute("disabled");   //active boutons spectateurs car spectateur
             }
             document.getElementById("status").innerText = MyStat;    //actualisation du status
          })
@@ -309,12 +313,16 @@
 
          socket.on('demandeH',data => {
             T=data.length
-            Historique=Historique
+            //Historique=Historique    STUPID
+            Historique = data;
+            HistoriqueSpec = Historique;  //actualise aussi l'historique spectateur
             i=0
             console.log("Historique reçu")
             while(i<T){
-               NumPlay=data[i][0]
-               NumHex=data[i][1]
+               //NumPlay=data[i][0]
+               //NumHex=data[i][1]
+               NumPlay=Historique[i][0]
+               NumHex=Historique[i][1]    //boucle sur l'historique client au lieu de l'historique reçu
                MyHexa=d3.select(document.getElementById("h"+NumHex))
                if (NumPlay==0){
                   MyHexa.attr('fill',"rgb("+P1[0]+","+P1[1]+","+P1[2]+")");
@@ -324,6 +332,28 @@
                i++
             }
          })
+
+         function skip(direction){                    // FONCTION COUP PRECEDENT/SUIVANT DU SPECTATEUR
+            if (direction=="b"){
+               var DeletedC = HistoriqueSpec.pop();
+               var NumP=DeletedC[0];
+               var NumH=DeletedC[1];
+               var MyH=d3.select(document.getElementById("h"+NumH));
+               MyH.attr('fill',"white");  //si skip en arrière, alors la case devient blanche et est effacé de l'historique spectateur
+            }
+            if (direction=="f"){
+               var C = Historique[HistoriqueSpec.length];
+               HistoriqueSpec.push(C);
+               var NumP=C[0];
+               var NumH=C[1];
+               var MyH=d3.select(document.getElementById("h"+NumH));
+               if (NumP==0){   
+                  MyH.attr('fill',"rgb("+P1[0]+","+P1[1]+","+P1[2]+")");
+               }else if (NumP==1){
+                  MyH.attr('fill',"rgb("+P2[0]+","+P2[1]+","+P2[2]+")");
+               }  //si skip en avant, alors la case est colorié et elle est ajouté à l'historique de spectateur
+            }
+         }
 
 
 
@@ -476,6 +506,7 @@
             <br/>
             <div id="menu_skip">
                 <button type="button" name="skip_b" id="skip_b" disabled><</button>
+                <button type="button" name="spec_refresh" id="spec_refresh" disabled>refresh</button>    <!--boutons spectateurs-->
                 <button type="button" name="skip_f" id="skip_f" disabled>></button>
             </div>
          </div>
@@ -484,5 +515,8 @@
    <script>
    document.getElementById("start").addEventListener("click",() => { modif_text_box(); })
    document.getElementById("exit").addEventListener("click",() => { exit(); })
+   document.getElementById("skip_b").addEventListener("click",() => {skip("b");})   //coup précédent
+   document.getElementById("skip_f").addEventListener("click",() => {skip("f");})   //coup suivant
+   document.getElementById("spec_refresh").addEventListener("click",() => {socket.emit('demandeH', "");})   //refresh l'historique client et l'historique spectateur revient aux coups actuels
    </script>
 </html>
