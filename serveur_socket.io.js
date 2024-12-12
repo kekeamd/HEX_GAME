@@ -79,15 +79,7 @@ io.on('connection', (socket) => {
     })
 
     socket.on('numplayer',data => {
-        if (Joueurs.includes(data)==1){
-            if (Joueurs.indexOf(data)==0){
-                socket.emit('numplayer',0);
-            }else{
-                socket.emit('numplayer',1);
-            }
-        }else{
-            socket.emit('numplayer',-1);
-        }
+        socket.emit('numplayer', Joueurs.indexOf(data));
     })
 
 
