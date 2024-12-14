@@ -6,17 +6,87 @@ const server = http.createServer(app);
 const io = new require("socket.io")(server);
 var nbJoueursMax=2;
 var Joueurs=[];
-var Historique = [];    /*initialisation historique*/
-var PartieEnCours = false; /* Pour savoir si il y a une partie qui à commencé ou non */
+var Historique = [];                            //initialisation historique
+var PartieEnCours = false;                      // Pour savoir si il y a une partie qui à commencé ou non */
 var CompteARebours = null;
 var Token;
 var size=-1;
 
+
+// Lancement de socket.io
 server.listen(8888, () => {console.log('Le serveur écoute sur le port 8888');});
 
+// Envoie de la page HTML
 app.get('/', (request, response) => {
     response.sendFile('client_socket.io.html', {root: __dirname});
 });
+
+// =================================================================
+// ===============       ESPACE FONCTIONS       ====================
+// =================================================================
+
+    function into(l,e1,e2){
+        res=0;
+        for (elem of l){
+            if (elem[0]==e1 && elem[1]==e2){
+                res=1;
+            }
+        }
+        return res;
+    }
+
+    function victoire(P,C){
+        var disco=[C];
+        var group=[];
+        console.log(Historique)
+        var cp=0;
+        while(disco.length>0){
+            cp=disco[0];
+            disco.shift();
+            group.push(cp);
+            console.log("Discovery : "+disco);
+            console.log("Groupe : "+group);
+
+            let PP=[(cp-1),(cp+1),(cp-size),(cp-size-1),(cp+size),(cp+size+1)];
+            console.log(PP)
+            for (e of PP){
+                console.log(e)
+                if (e>=0 && e<(size*size)){
+                    console.log("Yeah : "+ e)
+                    if ((!group.includes(e)) && (!disco.includes(e)) && (into(Historique,P,e))){
+                        disco.push(e);
+                    }
+                }
+            }
+        }
+        let pos1=0;
+        let pos2=0;
+        if (P==0){
+            for (hex of group){
+                if ((hex%size)==0){
+                    pos1=1;
+                }else if (((hex+1)%(size)==0) && hex>0){
+                    pos2=1;
+                }
+            }
+        }else if (P==1){
+            for (hex of group){
+                if (hex>=0 && hex<size){
+                    pos1=1;
+                }else if (hex>=(size*(size-1)) && hex<(size*size)){ 
+                    pos2=1;
+                }
+            }
+        }
+        if (pos1==1 && pos2==1){
+            PartieEnCours=false
+            io.emit('Victoire',[1,P])
+        }
+    }
+
+// =================================================================
+// ===============       ESPACE SOCKET       =======================
+// =================================================================
 
 io.on('connection', (socket) => {
     socket.on('MyConnect', data => {                       // Première connexion !
@@ -82,10 +152,6 @@ io.on('connection', (socket) => {
         socket.emit('numplayer', Joueurs.indexOf(data));
     })
 
-
-
-    // ============================================= CODE BY ILAN
-
     socket.on('action', data => {                       /*traitement des actions*/
         var numJ = Joueurs.indexOf(data[0]);            /*récup des datas*/
         var numC = data[1];
@@ -112,66 +178,4 @@ io.on('connection', (socket) => {
     socket.on('demandeH', data =>{                      /*demande l'historique actuel*/
         socket.emit('demandeH',Historique);
     })
-
-    function into(l,e1,e2){
-        res=0;
-        for (elem of l){
-            if (elem[0]==e1 && elem[1]==e2){
-                res=1;
-            }
-        }
-        return res;
-    }
-
-    function victoire(P,C){
-        console.log("START VICTOIRE =============================================>")
-        var disco=[C];
-        var group=[];
-        console.log(Historique)
-        var cp=0;
-        while(disco.length>0){
-            cp=disco[0];
-            disco.shift();
-            group.push(cp);
-            console.log("Discovery : "+disco);
-            console.log("Groupe : "+group);
-
-            let PP=[(cp-1),(cp+1),(cp-size),(cp-size-1),(cp+size),(cp+size+1)];
-            console.log(PP)
-            for (e of PP){
-                console.log(e)
-                if (e>=0 && e<(size*size)){
-                    console.log("Yeah : "+ e)
-                    if ((!group.includes(e)) && (!disco.includes(e)) && (into(Historique,P,e))){
-                        disco.push(e);
-                    }
-                }
-            }
-        }
-        console.log("Fonction victoire terminé !");
-        console.log(group);
-        let pos1=0;
-        let pos2=0;
-        if (P==0){
-            for (hex of group){
-                if ((hex%size)==0){
-                    pos1=1;
-                }else if (((hex+1)%(size)==0) && hex>0){ // problème !
-                    pos2=1;
-                }
-            }
-        }else if (P==1){
-            for (hex of group){
-                if (hex>=0 && hex<size){
-                    pos1=1;
-                }else if (hex>=(size*(size-1)) && hex<(size*size)){ 
-                    pos2=1;
-                }
-            }
-        }
-        if (pos1==1 && pos2==1){
-            PartieEnCours=false
-            io.emit('Victoire',[1,P])
-        }
-    }
 });

@@ -149,27 +149,44 @@
             column-gap: 5%;
          }
       </style>
-      <script>
+      <script defer>
          var socket = io();
-         var Myname ="";
+         var Myname =""; // Nom de Player
          var MyNum = -1;
          var P1 = [255,0,0] //r,g,b
          var P2 = [0,0,255] //r,g,b
-         var MyStat = "Spectator"
+         var MyStat = "Spectator" // Status du Joueur : Spectator / Player
          var size = 11      //taille de la surface de jeu
-         var Historique=[];
+         var Historique=[]; // Historique de la partie
          var HistoriqueSpec=[]; // historique du spectateur
+         var affichetimer=null;
 
-         function componentToHex(c) {
+
+         // =================================================================
+         // ===============       ESPACE FONCTIONS       ====================
+         // =================================================================
+
+         function envoiMessage(text_content){ //                                  ENVOIE DE MESSAGE
+            if (Myname==""){
+               console.log("Pas de nom de joueurs")
+            }else{
+               socket.emit('message',[text_content.value,Myname]);
+               //messages.value += text_content.value+"\n";
+               console.log("Je m'appelle :"+Myname)
+               text_content.value=""
+            }
+         }
+
+         function componentToHex(c) { // Fonction qui transforme une valeur int (0-255) en valeur Hex
             var hex = c.toString(16);
             return hex.length == 1 ? "0" + hex : hex;
          }
 
-         function rgbToHex(r, g, b) {
+         function rgbToHex(r, g, b) { // Fonction qui transforme une entrée RGB en Hexadécimal
             return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
          }
 
-         function hexToRgb(hex) {
+         function hexToRgb(hex) { // Fonction qui transforme un coueleur sous la forme Hex en RGB
             var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
             return result ? {
                r: parseInt(result[1], 16),
@@ -183,16 +200,7 @@
             socket.emit("MyConnect", size);
          }
 
-         socket.on('MyConnect', data => {  //                                      RECUPERATION DU TEST DE COMMUNICATION SERVEUR
-            if (data=0){
-               console.log('Tout es ok !')
-               socket.emit('demandeH')
-            }else{
-               // CoMmEnT tU aS rEuSsI à aRrIvEr IcI ?
-            }
-         });
-
-         function player_in(){
+         function player_in(){ // Fonction de mise à jour d'information client lors de l'entrée d'un joueur dans la partie
             var TextInput = document.getElementById("text_input");
             TextInput.value="";
             document.getElementById("start").setAttribute("disabled","");
@@ -202,7 +210,7 @@
             //socket.emit('numplayer',Myname);
          }
 
-         function player_out(){
+         function player_out(){ // Fonction de Mise à jour d'information client lors de la sortie d'un joueur de la partie
             var TextInput = document.getElementById("text_input")
             var Playerinfo = document.getElementById("Player_name")
             document.getElementById("information").innerText=""
@@ -242,15 +250,7 @@
             }
          }
 
-         socket.on('enter',data => {  //                                         RECUPERATION DE LA LISTE DES JOUEURS
-            console.log('J\'ai reçu ma zone de texte !')
-            const MyText = document.getElementById("Players")
-            MyText.innerText=data;
-         })
-
-         var affichetimer=null;
-
-         function afficheInfo(info){
+         function afficheInfo(info){ // Fonction qui affiche une information au client pendant une durée déterminée (5s)
             if (affichetimer){
                clearTimeout(affichetimer);
             }
@@ -260,110 +260,6 @@
                Info.innerText = "";
             }, 5000)
          }
-
-         socket.on('information',data => {   //                                  RECUPERATION D'INFORMATION SERVEUR
-            if (data=="free"){
-               if (Myname==""){
-                  afficheInfo("Une personne vient de sortir.");
-                  player_out();
-               }
-            }
-            else if (data=="full"){
-               afficheInfo("Partie pleine !");
-               document.getElementById("exit").setAttribute("disabled","")
-               document.getElementById("start").setAttribute("disabled","")
-               document.getElementById("text_input").setAttribute("readonly","")
-            }
-            else if (data=="starting"){
-               afficheInfo("La partie commence dans 5 Sec...");
-            }
-            else if (data=="started"){
-               afficheInfo("La partie commence!");
-
-            }
-            else if (data=="cancel"){
-               afficheInfo("Annulation car un joueur a quitté la partie!");
-            }
-         })
-         
-         socket.on('numplayer',data => {  //                                         RECUPERATION DU NUMERO DU JOUEUR
-            MyNum=data;
-            if (MyNum >= 0){
-               MyStat = "Player "+(MyNum++);
-               document.getElementById("skip_b").setAttribute("disabled", "");
-               document.getElementById("skip_f").setAttribute("disabled", "");
-               document.getElementById("spec_refresh").setAttribute("disabled", "");   //désactive boutons spectateurs car joueur
-            } else{
-               MyStat = "Spectator";
-               document.getElementById("skip_b").removeAttribute("disabled");
-               document.getElementById("skip_f").removeAttribute("disabled");
-               document.getElementById("spec_refresh").removeAttribute("disabled");   //active boutons spectateurs car spectateur
-            }
-            document.getElementById("status").innerText = MyStat;    //actualisation du status
-         })
-
-         function envoiMessage(text_content){ //                                  ENVOIE DE MESSAGE
-            if (Myname==""){
-               console.log("Pas de nom de joueurs")
-            }else{
-               socket.emit('message',[text_content.value,Myname]);
-               //messages.value += text_content.value+"\n";
-               console.log("Je m'appelle :"+Myname)
-               text_content.value=""
-            }
-         }
-         socket.on('message',data => { //                                        ACTUALISATION DU CHAT
-            tmp = data + messages.value;
-            messages.value = tmp
-         })
-         socket.on('NewName',data => { //                                        MODIFICATION DU NOM CAR DEJA EXISTANT
-                  var Playerinfo = document.getElementById("Player_name");
-                  Myname=data;
-                  document.getElementById("text_input").setAttribute("placeholder","Your name is : "+Myname);
-                  Playerinfo.innerText=Myname;     // problème d'affichage potentiellement fixé ici
-                  socket.emit('numplayer',Myname);
-         })
-         
-         socket.on('action', data => {
-            NumPlay=data[0];
-            NumHex=data[1];
-            Historique.push(NumPlay,NumHex);
-            MyHexa=d3.select(document.getElementById("h"+NumHex))
-            console.log("Hexagone reçu : " + "h"+NumHex)
-            if (NumPlay==0){   
-               MyHexa.attr('fill',"rgb("+P1[0]+","+P1[1]+","+P1[2]+")");
-            }else if (NumPlay==1){
-               MyHexa.attr('fill',"rgb("+P2[0]+","+P2[1]+","+P2[2]+")");
-            }
-         })
-
-         socket.on('demandeH',data => {
-            T=data.length
-            //Historique=Historique    STUPID
-            Historique = data;
-            HistoriqueSpec = Historique;  //actualise aussi l'historique spectateur
-            i=0
-            console.log("Historique reçu")
-            while(i<T){
-               //NumPlay=data[i][0]
-               //NumHex=data[i][1]
-               NumPlay=Historique[i][0]
-               NumHex=Historique[i][1]    //boucle sur l'historique client au lieu de l'historique reçu
-               MyHexa=d3.select(document.getElementById("h"+NumHex))
-               if (NumPlay==0){
-                  MyHexa.attr('fill',"rgb("+P1[0]+","+P1[1]+","+P1[2]+")");
-               }else if (NumPlay==1){
-                  MyHexa.attr('fill',"rgb("+P2[0]+","+P2[1]+","+P2[2]+")");
-               }
-               i++
-            }
-         })
-
-         socket.on('Victoire', data => {
-            if (data[0]==1){
-               document.getElementById("information").innerText="Vitoire du Joueur "+(data[1]+1)
-            }
-         })
 
          function skip(direction){                    // FONCTION COUP PRECEDENT/SUIVANT DU SPECTATEUR
             if (direction=="b"){
@@ -388,10 +284,41 @@
          }
 
 
+         // Fonctions de gestions des couleurs de Player (Affichage local) :
 
-// =======================================================================================================================================================
-// TABLIER
-// =======================================================================================================================================================
+         function color() { // Mise en place de l'écoute des input RGB du menu
+            var Player1 = document.getElementById("P1color");
+            var Player2 = document.getElementById("P2color");
+            var P1def = rgbToHex(P1[0],P1[1],P1[2]);
+            var P2def = rgbToHex(P2[0],P2[1],P2[2]);
+            Player1.value = P1def
+            Player2.value = P2def
+            Player1.addEventListener("change", updateAll, false);
+            Player2.addEventListener("change", updateAll, false);
+         }
+
+         function updateAll(event) { // Fonction qui Affiche les changement de couleur
+            elem=document.getElementById(event.target.id)
+            newrgb=hexToRgb(elem.value)
+            console.log(newrgb)
+            if (event.target.id=="P1color"){
+               P1[0]=newrgb.r
+               P1[1]=newrgb.g
+               P1[2]=newrgb.b
+            }else if (event.target.id=="P2color"){
+               P2[0]=newrgb.r
+               P2[1]=newrgb.g
+               P2[2]=newrgb.b
+            }
+            console.log(P1)
+            console.log(P2)
+            socket.emit('demandeH',"")
+         }
+
+
+         // =======================================================================================================================================================
+         // TABLIER
+         // =======================================================================================================================================================
 
          function creeHexagone(rayon) {
             var points = new Array();
@@ -453,40 +380,126 @@
             }
          }
 
-// =======================================================================================================================================================
+         // =======================================================================================================================================================
 
+
+         // =================================================================
+         // ===============       ESPACE SOCKET       =======================
+         // =================================================================
+
+         socket.on('MyConnect', data => {  //                                      RECUPERATION DU TEST DE COMMUNICATION SERVEUR
+            if (data=0){
+               console.log('Tout es ok !')
+               socket.emit('demandeH')
+            }else{
+               // CoMmEnT tU aS rEuSsI à aRrIvEr IcI ?
+            }
+         });
+
+         socket.on('Victoire', data => {
+            if (data[0]==1){
+               document.getElementById("information").innerText="Vitoire du Joueur "+(data[1]+1)
+            }
+         })
+
+         socket.on('information',data => {   //                                  RECUPERATION D'INFORMATION SERVEUR
+            if (data=="free"){
+               if (Myname==""){
+                  afficheInfo("Une personne vient de sortir.");
+                  player_out();
+               }
+            }
+            else if (data=="full"){
+               afficheInfo("Partie pleine !");
+               document.getElementById("exit").setAttribute("disabled","")
+               document.getElementById("start").setAttribute("disabled","")
+               document.getElementById("text_input").setAttribute("readonly","")
+            }
+            else if (data=="starting"){
+               afficheInfo("La partie commence dans 5 Sec...");
+            }
+            else if (data=="started"){
+               afficheInfo("La partie commence!");
+
+            }
+            else if (data=="cancel"){
+               afficheInfo("Annulation car un joueur a quitté la partie!");
+            }
+         })
+         
+         socket.on('numplayer',data => {  //                                         RECUPERATION DU NUMERO DU JOUEUR
+            MyNum=data;
+            if (MyNum >= 0){
+               MyStat = "Player "+(MyNum++);
+               document.getElementById("skip_b").setAttribute("disabled", "");
+               document.getElementById("skip_f").setAttribute("disabled", "");
+               document.getElementById("spec_refresh").setAttribute("disabled", "");   //désactive boutons spectateurs car joueur
+            } else{
+               MyStat = "Spectator";
+               document.getElementById("skip_b").removeAttribute("disabled");
+               document.getElementById("skip_f").removeAttribute("disabled");
+               document.getElementById("spec_refresh").removeAttribute("disabled");   //active boutons spectateurs car spectateur
+            }
+            document.getElementById("status").innerText = MyStat;    //actualisation du status
+         })
+         
+         socket.on('message',data => { //                                        ACTUALISATION DU CHAT
+            tmp = data + messages.value;
+            messages.value = tmp
+         })
+
+         socket.on('NewName',data => { //                                        MODIFICATION DU NOM CAR DEJA EXISTANT
+                  var Playerinfo = document.getElementById("Player_name");
+                  Myname=data;
+                  document.getElementById("text_input").setAttribute("placeholder","Your name is : "+Myname);
+                  Playerinfo.innerText=Myname;     // problème d'affichage potentiellement fixé ici
+                  socket.emit('numplayer',Myname);
+         })
+         
+         socket.on('action', data => {
+            NumPlay=data[0];
+            NumHex=data[1];
+            Historique.push(NumPlay,NumHex);
+            MyHexa=d3.select(document.getElementById("h"+NumHex))
+            console.log("Hexagone reçu : " + "h"+NumHex)
+            if (NumPlay==0){   
+               MyHexa.attr('fill',"rgb("+P1[0]+","+P1[1]+","+P1[2]+")");
+            }else if (NumPlay==1){
+               MyHexa.attr('fill',"rgb("+P2[0]+","+P2[1]+","+P2[2]+")");
+            }
+         })
+
+         socket.on('demandeH',data => { // Récupération de l'historique envoyé par le serveur
+            T=data.length
+            Historique = data;
+            HistoriqueSpec = Historique;  //actualise aussi l'historique spectateur
+            i=0
+            console.log("Historique reçu")
+            while(i<T){
+               //NumPlay=data[i][0]
+               //NumHex=data[i][1]
+               NumPlay=Historique[i][0]
+               NumHex=Historique[i][1]    //boucle sur l'historique client au lieu de l'historique reçu
+               MyHexa=d3.select(document.getElementById("h"+NumHex))
+               if (NumPlay==0){
+                  MyHexa.attr('fill',"rgb("+P1[0]+","+P1[1]+","+P1[2]+")");
+               }else if (NumPlay==1){
+                  MyHexa.attr('fill',"rgb("+P2[0]+","+P2[1]+","+P2[2]+")");
+               }
+               i++
+            }
+         })
+
+         socket.on('enter',data => {  //                                         RECUPERATION DE LA LISTE DES JOUEURS
+            console.log('J\'ai reçu ma zone de texte !')
+            const MyText = document.getElementById("Players")
+            MyText.innerText=data;
+         })
+
+
+         // Event Listener au lancement de la page :
          window.addEventListener('load', () => { test(); genereDamier(30,size,size) } );
          window.addEventListener("load", color, false);
-
-         function color() {
-            var Player1 = document.getElementById("P1color");
-            var Player2 = document.getElementById("P2color");
-            var P1def = rgbToHex(P1[0],P1[1],P1[2]);
-            var P2def = rgbToHex(P2[0],P2[1],P2[2]);
-            Player1.value = P1def
-            Player2.value = P2def
-            Player1.addEventListener("change", updateAll, false);
-            Player2.addEventListener("change", updateAll, false);
-
-         }
-
-         function updateAll(event) {
-            elem=document.getElementById(event.target.id)
-            newrgb=hexToRgb(elem.value)
-            console.log(newrgb)
-            if (event.target.id=="P1color"){
-               P1[0]=newrgb.r
-               P1[1]=newrgb.g
-               P1[2]=newrgb.b
-            }else if (event.target.id=="P2color"){
-               P2[0]=newrgb.r
-               P2[1]=newrgb.g
-               P2[2]=newrgb.b
-            }
-            console.log(P1)
-            console.log(P2)
-            socket.emit('demandeH',"")
-         }
 
 
       </script>
