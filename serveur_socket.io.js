@@ -54,6 +54,7 @@ app.get('/', (request, response) => {
         }
         let pos1=0;
         let pos2=0;
+        //console.log(group)
         if (P==0){
             for (hex of group){
                 if ((hex%size)==0){
@@ -114,7 +115,7 @@ io.on('connection', (socket) => {
                     PartieEnCours = true; 
                     Token=0;
                 } ,5000);
-                console.log(CompteARebours)
+                //console.log(CompteARebours)
             }
         }else{
             console.log("J'ai bien reçu le nom de joueur, mais la partie est pleine !");
