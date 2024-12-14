@@ -46,7 +46,6 @@ app.get('/', (request, response) => {
             group.push(cp);
             console.log("Discovery : "+disco);
             console.log("Groupe : "+group);
-
             let PP=[(cp-1),(cp+1),(cp-size),(cp-size-1),(cp+size),(cp+size+1)];
             console.log(PP)
             for (e of PP){
