@@ -227,7 +227,7 @@
             var Info = document.getElementById("information");
             if (TextInput.value==""){
                Info.innerText="Veuillez saisir une entrée ! Aucune entrée saisie !";
-               TextInput.setAttribute("placeholder","Veuillez entrée un nom");
+               TextInput.setAttribute("placeholder","Pseudo nécessaire !");
             }else{
                Info.innerText="";
                console.log("Envoie d'une demande de changment de text")
@@ -511,7 +511,7 @@
          <h1 id="welcome_text">Bienvenue dans le jeu de HEX</h1>
          </div>
          <div name="entry" id="entry">
-            <input type="text" id="text_input" name="text_input" maxlength="20" placeholder="Your Fucking name !" required min="1" onChange="modif_text_box()" autofocus>
+            <input type="text" id="text_input" name="text_input" maxlength="20" placeholder="Votre Pseudo" required min="1" onChange="modif_text_box()" autofocus>
             <button type="button" name="start" id="start">Enter</button>
             <button type="button" name="exit" id="exit"  disabled>Exit</button>
             <p name="information" id="information"></p>
