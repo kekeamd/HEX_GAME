@@ -21,6 +21,10 @@ app.get('/', (request, response) => {
     response.sendFile('client_socket.io.html', {root: __dirname});
 });
 
+// Envoie icon
+app.get('/logo.ico', (request, response) => {
+    response.sendFile('logo.ico', {root: __dirname});
+})
 // =================================================================
 // ===============       ESPACE FONCTIONS       ====================
 // =================================================================
