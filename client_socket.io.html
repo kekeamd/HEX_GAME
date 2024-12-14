@@ -172,11 +172,10 @@
 
          function envoiMessage(text_content){ //                                  ENVOIE DE MESSAGE
             if (Myname==""){
-               console.log("Pas de nom de joueurs")
+               //console.log("Pas de nom de joueurs")
             }else{
                socket.emit('message',[text_content.value,Myname]);
-               //messages.value += text_content.value+"\n";
-               console.log("Je m'appelle :"+Myname)
+               //console.log("Je m'appelle :"+Myname)
                text_content.value=""
             }
          }
@@ -200,7 +199,7 @@
          }
 
          function test() { //                                                      TEST COMMUNICATION SERVEUR
-            console.log("Appel du serveur");
+            //console.log("Appel du serveur");
             socket.emit("MyConnect", size);
          }
 
@@ -210,8 +209,6 @@
             document.getElementById("start").setAttribute("disabled","");
             document.getElementById("exit").removeAttribute("disabled","");
             TextInput.setAttribute("readonly","");
-            //Playerinfo.innerText=Myname;
-            //socket.emit('numplayer',Myname);
          }
 
          function player_out(){ // Fonction de Mise à jour d'information client lors de la sortie d'un joueur de la partie
@@ -221,7 +218,7 @@
             document.getElementById("start").removeAttribute("disabled")
             document.getElementById("exit").setAttribute("disabled","")
             TextInput.removeAttribute("readonly")
-            TextInput.setAttribute("placeholder","Your fucking Name")
+            TextInput.setAttribute("placeholder","Votre Pseudo")
             Playerinfo.innerText="none";
             socket.emit('numplayer',Myname)
          }
@@ -234,16 +231,16 @@
                TextInput.setAttribute("placeholder","Pseudo nécessaire !");
             }else{
                Info.innerText="";
-               console.log("Envoie d'une demande de changment de text")
+               //console.log("Envoie d'une demande de changment de text")
                socket.emit('enter',(TextInput.value));
                player_in();
-               console.log(TextInput.value);
+               //console.log(TextInput.value);
                
             }
          }
 
          function exit(){  //                                                    FONCTION DE SORTIE DE LA PARTIE
-            console.log(Myname);
+            //console.log(Myname);
             if (Myname!=""){
                socket.emit('exit',Myname);
                Myname="";
@@ -251,6 +248,7 @@
                player_out();
             }else{
                document.getElementById("information").innerText="Personne à faire sortir !"
+               document.getAnimations("exit").setAttribute("disabled",1)
             }
          }
 
@@ -274,18 +272,20 @@
                MyH.attr('fill',"white");  //si skip en arrière, alors la case devient blanche et est effacé de l'historique spectateur
             }
             if (direction=="f"){
-               var C = Historique[HistoriqueSpec.length];
-               HistoriqueSpec.push(C);
-               var NumP=C[0];
-               var NumH=C[1];
-               var MyH=d3.select(document.getElementById("h"+NumH));
-               if (NumP==0){   
-                  MyH.attr('fill',"rgb("+P1[0]+","+P1[1]+","+P1[2]+")");
-               }else if (NumP==1){
-                  MyH.attr('fill',"rgb("+P2[0]+","+P2[1]+","+P2[2]+")");
-               }  //si skip en avant, alors la case est colorié et elle est ajouté à l'historique de spectateur
+               if (Historique.length>HistoriqueSpec.length){
+                  var C = Historique[HistoriqueSpec.length];
+                  HistoriqueSpec.push(C);
+                  var NumP=C[0];
+                  var NumH=C[1];
+                  var MyH=d3.select(document.getElementById("h"+NumH));
+                  if (NumP==0){   
+                     MyH.attr('fill',"rgb("+P1[0]+","+P1[1]+","+P1[2]+")");
+                  }else if (NumP==1){
+                     MyH.attr('fill',"rgb("+P2[0]+","+P2[1]+","+P2[2]+")");
+                  }  //si skip en avant, alors la case est colorié et elle est ajouté à l'historique de spectateur
             }
          }
+      }
 
 
          // Fonctions de gestions des couleurs de Player (Affichage local) :
@@ -306,7 +306,6 @@
          function updateAll(event) { // Fonction qui Affiche les changement de couleur
             elem=document.getElementById(event.target.id)
             newrgb=hexToRgb(elem.value)
-            console.log(newrgb)
             if (event.target.id=="P1color"){
                P1[0]=newrgb.r
                P1[1]=newrgb.g
@@ -318,8 +317,6 @@
                P2[2]=newrgb.b
                document.getElementById("text_p2").setAttribute("style", "color:rgb("+P2[0]+","+P2[1]+","+P2[2]+")"); //pareil
             }
-            console.log(P1)
-            console.log(P2)
             socket.emit('demandeH',"")
          }
 
@@ -334,7 +331,7 @@
             var angle = i * Math.PI / 3;
             var x = Math.sin(angle) * rayon;
             var y = -Math.cos(angle) * rayon;
-	         console.log("x="+Math.round(x*100)/100+" y="+Math.round(y*100)/100);
+	         //console.log("x="+Math.round(x*100)/100+" y="+Math.round(y*100)/100);
             points.push([Math.round(x*100)/100, Math.round(y*100)/100]);
             }
             return points;
@@ -356,7 +353,7 @@
                      d += x+","+y+" "
                   }
                   d += "Z";
-                  console.log(d)
+                  //console.log(d)
                   d3.select("svg")
                   .append("path")
                   .attr("d",d)
@@ -368,8 +365,8 @@
                      .attr('id')
                      .substring(1))
                      mafonction(d3.select(this))
-                     console.log("Hexagone cliqué : "+ numHexagone)
-                     console.log(d3.select(this).attr('id'));
+                     //console.log("Hexagone cliqué : "+ numHexagone)
+                     //console.log(d3.select(this).attr('id'));
                      //d3.select(this).attr('fill', 'red');
                   });
                }
@@ -379,7 +376,7 @@
          function mafonction(h){
             var Info = document.getElementById("information")
             var numHexagone = parseInt(h.attr('id').substring(1))
-            console.log(numHexagone)
+            //console.log(numHexagone)
             if (Myname==""){
                Info.innerText="Tu n'es pas joueur !"
             }else{
@@ -396,9 +393,14 @@
          // =================================================================
 
          socket.on('MyConnect', data => {  //                                      RECUPERATION DU TEST DE COMMUNICATION SERVEUR
-            if (data=0){
-               console.log('Tout es ok !')
+            if (data[0]==0){
+               //console.log('Tout es ok !')
                socket.emit('demandeH')
+               document.getElementById("exit").setAttribute("disabled",1)
+               if (data[1]==true){
+                  document.getElementById("start").setAttribute("disabled",1)
+                  document.getElementById("text_input").setAttribute("readonly",1)
+               }
             }else{
                // CoMmEnT tU aS rEuSsI à aRrIvEr IcI ?
             }
@@ -428,6 +430,8 @@
             }
             else if (data=="started"){
                afficheInfo("La partie commence!");
+               document.getElementById("start").setAttribute("disabled",1)
+               document.getElementById("text_input").setAttribute("readonly",1)
 
             }
             else if (data=="cancel"){
@@ -459,7 +463,7 @@
          socket.on('NewName',data => { //                                        MODIFICATION DU NOM CAR DEJA EXISTANT
                   var Playerinfo = document.getElementById("Player_name");
                   Myname=data;
-                  document.getElementById("text_input").setAttribute("placeholder","Your name is : "+Myname);
+                  document.getElementById("text_input").setAttribute("placeholder","Votre Pseudo est : "+Myname);
                   Playerinfo.innerText=Myname;     // problème d'affichage potentiellement fixé ici
                   socket.emit('numplayer',Myname);
          })
@@ -469,7 +473,7 @@
             NumHex=data[1];
             Historique.push(NumPlay,NumHex);
             MyHexa=d3.select(document.getElementById("h"+NumHex))
-            console.log("Hexagone reçu : " + "h"+NumHex)
+            //console.log("Hexagone reçu : " + "h"+NumHex)
             if (NumPlay==0){   
                MyHexa.attr('fill',"rgb("+P1[0]+","+P1[1]+","+P1[2]+")");
             }else if (NumPlay==1){
@@ -480,12 +484,13 @@
          socket.on('demandeH',data => { // Récupération de l'historique envoyé par le serveur
             T=data.length
             Historique = data;
-            HistoriqueSpec = Historique;  //actualise aussi l'historique spectateur
+            HistoriqueSpec=[]
+            for (elementH of Historique){//actualise aussi l'historique spectateur
+               HistoriqueSpec.push(elementH)
+            }
             i=0
-            console.log("Historique reçu")
+            //console.log("Historique reçu")
             while(i<T){
-               //NumPlay=data[i][0]
-               //NumHex=data[i][1]
                NumPlay=Historique[i][0]
                NumHex=Historique[i][1]    //boucle sur l'historique client au lieu de l'historique reçu
                MyHexa=d3.select(document.getElementById("h"+NumHex))
@@ -499,7 +504,7 @@
          })
 
          socket.on('enter',data => {  //                                         RECUPERATION DE LA LISTE DES JOUEURS
-            console.log('J\'ai reçu ma zone de texte !')
+            //console.log('Liste de joueur reçu')
             const MyText = document.getElementById("Players")
             MyText.innerText=data;
          })

@@ -38,20 +38,15 @@ app.get('/', (request, response) => {
     function victoire(P,C){
         var disco=[C];
         var group=[];
-        console.log(Historique)
+        //console.log(Historique)
         var cp=0;
         while(disco.length>0){
             cp=disco[0];
             disco.shift();
             group.push(cp);
-            console.log("Discovery : "+disco);
-            console.log("Groupe : "+group);
             let PP=[(cp-1),(cp+1),(cp-size),(cp-size-1),(cp+size),(cp+size+1)];
-            console.log(PP)
             for (e of PP){
-                console.log(e)
                 if (e>=0 && e<(size*size)){
-                    console.log("Yeah : "+ e)
                     if ((!group.includes(e)) && (!disco.includes(e)) && (into(Historique,P,e))){
                         disco.push(e);
                     }
@@ -99,7 +94,7 @@ io.on('connection', (socket) => {
             ok=1; // Il y a un problème...
             console.log("Essaie de connection avec une taille de tablier erroné ("+size+")")
         }
-        socket.emit('MyConnect', ok);
+        socket.emit('MyConnect', [ok,PartieEnCours]);
         io.emit('enter',Joueurs);
     });
 
