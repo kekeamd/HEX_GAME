@@ -359,6 +359,12 @@
             }
          })
 
+         socket.on('Victoire', data => {
+            if (data[0]==1){
+               document.getElementById("information").innerText="Vitoire du Joueur "+(data[1]+1)
+            }
+         })
+
          function skip(direction){                    // FONCTION COUP PRECEDENT/SUIVANT DU SPECTATEUR
             if (direction=="b"){
                var DeletedC = HistoriqueSpec.pop();

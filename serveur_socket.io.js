@@ -96,8 +96,6 @@ io.on('connection', (socket) => {
                 dejafait=true;
             }
             i++;
-            console.log(i)
-            console.log(Historique.length)
         }
         if (!dejafait && PartieEnCours && numJ == Token){                  /*réalise l'action*/
             Historique.push([numJ, numC]);
@@ -106,7 +104,6 @@ io.on('connection', (socket) => {
             } else if(Token==1){
                 Token=0;
             }
-            console.log(Historique)
             io.emit('action', [numJ, numC]);
             victoire(numJ,numC);
         }
@@ -127,11 +124,11 @@ io.on('connection', (socket) => {
     }
 
     function victoire(P,C){
+        console.log("START VICTOIRE =============================================>")
         var disco=[C];
         var group=[];
         console.log(Historique)
         var cp=0;
-        var PP;
         while(disco.length>0){
             cp=disco[0];
             disco.shift();
@@ -139,16 +136,13 @@ io.on('connection', (socket) => {
             console.log("Discovery : "+disco);
             console.log("Groupe : "+group);
 
-            PP=[]
-            PP=[(cp-1),(cp+1),(cp-size),(cp-size-1),(cp-size+1),(cp+size),(cp+size+1),(cp+size-1)];
+            let PP=[(cp-1),(cp+1),(cp-size),(cp-size-1),(cp+size),(cp+size+1)];
             console.log(PP)
             for (e of PP){
                 console.log(e)
                 if (e>=0 && e<(size*size)){
                     console.log("Yeah : "+ e)
-                    //var save=e;
                     if ((!group.includes(e)) && (!disco.includes(e)) && (into(Historique,P,e))){
-                        //disco.push(save);
                         disco.push(e);
                     }
                 }
@@ -156,5 +150,28 @@ io.on('connection', (socket) => {
         }
         console.log("Fonction victoire terminé !");
         console.log(group);
+        let pos1=0;
+        let pos2=0;
+        if (P==0){
+            for (hex of group){
+                if ((hex%size)==0){
+                    pos1=1;
+                }else if (((hex+1)%(size)==0) && hex>0){ // problème !
+                    pos2=1;
+                }
+            }
+        }else if (P==1){
+            for (hex of group){
+                if (hex>=0 && hex<size){
+                    pos1=1;
+                }else if (hex>=(size*(size-1)) && hex<(size*size)){ 
+                    pos2=1;
+                }
+            }
+        }
+        if (pos1==1 && pos2==1){
+            PartieEnCours=false
+            io.emit('Victoire',[1,P])
+        }
     }
 });
