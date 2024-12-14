@@ -266,11 +266,13 @@
 
          function skip(direction){                    // FONCTION COUP PRECEDENT/SUIVANT DU SPECTATEUR
             if (direction=="b"){
-               var DeletedC = HistoriqueSpec.pop();
-               var NumP=DeletedC[0];
-               var NumH=DeletedC[1];
-               var MyH=d3.select(document.getElementById("h"+NumH));
-               MyH.attr('fill',"white");  //si skip en arrière, alors la case devient blanche et est effacé de l'historique spectateur
+               if(HistoriqueSpec.length>0){
+                  var DeletedC = HistoriqueSpec.pop();
+                  var NumP=DeletedC[0];
+                  var NumH=DeletedC[1];
+                  var MyH=d3.select(document.getElementById("h"+NumH));
+                  MyH.attr('fill',"white");  //si skip en arrière, alors la case devient blanche et est effacé de l'historique spectateur
+               }
             }
             if (direction=="f"){
                if (Historique.length>HistoriqueSpec.length){
